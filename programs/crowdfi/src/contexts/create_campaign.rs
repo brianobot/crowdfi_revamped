@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{metadata::mpl_token_metadata, token_interface::{Mint, TokenInterface}};
 
-use crate::state::Campaign;
+use crate::state::{Campaign, Config};
 
 
 #[derive(Accounts)]
@@ -9,6 +9,12 @@ use crate::state::Campaign;
 pub struct CreateCampaign<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [b"config", config.seed.to_le_bytes().as_ref()],
+        bump = config.bump,
+    )]
+    pub config: Account<'info, Config>,
     #[account(
         init,
         payer = user,

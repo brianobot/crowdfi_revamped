@@ -19,8 +19,8 @@ pub struct Donate<'info> {
 
     #[account(
         mut,
-        seeds = [b"config"],
-        bump,
+        seeds = [b"config", config.seed.to_le_bytes().as_ref()],
+        bump = config.bump,
     )]
     pub config: Account<'info, Config>,
     #[account(

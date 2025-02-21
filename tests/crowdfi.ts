@@ -5,6 +5,7 @@ import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web
 import { confirmTransaction } from "@solana-developers/helpers";
 import { BN } from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+import { randomBytes } from 'node:crypto';
 
 describe("crowdfi", () => {
   // Configure the client to use the local cluster.
@@ -21,10 +22,12 @@ describe("crowdfi", () => {
   let mint_bump;
   
   const updateAuthority = anchor.web3.Keypair.generate();
+  const seed = new BN(randomBytes(8));
 
   before(async () => {
       [config, config_bump] = PublicKey.findProgramAddressSync([
         Buffer.from("config"),
+        seed.toArrayLike(Buffer, "le", 8),
       ], program.programId);
       console.log("✅ Config Account Address: ", config);
       
@@ -53,8 +56,9 @@ describe("crowdfi", () => {
 
     const tx = await program.methods
       .initializeConfig(
-        new BN(1000),
-        new BN(1000),
+        seed, // Seed
+        new BN(1000), // max_duration
+        new BN(1000), // max_amount
       )
       .accountsPartial({
         admin: updateAuthority.publicKey,
@@ -80,6 +84,7 @@ describe("crowdfi", () => {
       )
       .accountsPartial({
         user: updateAuthority.publicKey,
+        config: config,
         campaign: campaign,
         rewardMint: campaign_mint,
         campaignVault: campaign_vault,
@@ -119,6 +124,7 @@ describe("crowdfi", () => {
       .accountsPartial({
         user: updateAuthority.publicKey,
         admin: updateAuthority.publicKey,
+        config: config,
         campaign: campaign,
         campaignVault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,

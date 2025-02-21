@@ -14,8 +14,8 @@ declare_id!("14QSPRYYb9EyDHSXsqCNY4mcWKQ6dRycb8SNXeKHUcm4");
 pub mod crowdfi {
     use super::*;
 
-    pub fn initialize_config(ctx: Context<InitializeConfig>, max_duration: u64, max_amount: u64) -> Result<()> {
-        ctx.accounts.init(max_duration, max_amount, &ctx.bumps)?;
+    pub fn initialize_config(ctx: Context<InitializeConfig>, seed: u64, max_duration: u64, max_amount: u64) -> Result<()> {
+        ctx.accounts.init(seed, max_duration, max_amount, &ctx.bumps)?;
         Ok(())
     }
     
