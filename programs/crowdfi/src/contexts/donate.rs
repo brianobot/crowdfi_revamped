@@ -14,6 +14,8 @@ use crate::state::{Campaign, Config};
 pub struct Donate<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
+    #[account(address = config.admin)]
+    pub admin: SystemAccount<'info>,
 
     #[account(
         mut,
@@ -65,21 +67,27 @@ impl<'info> Donate<'info> {
 
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
-        let fee = amount - (self.config.fee as u64 * amount);
+        // let _fee = amount - (self.config.fee as u64 * amount);
 
-        transfer(cpi_ctx, amount -  fee)?;
+        transfer(cpi_ctx, amount)?;
         Ok(())
     }
 
     pub fn charge_fee(&mut self) -> Result<()> {
         let cpi_program = self.system_program.to_account_info();
 
-        let config_admin_account = AccountInfo::new(&self.config.admin, false, true, lamports, data, owner, executable, rent_epoch)
+        let cpi_accounts = Transfer {
+            from: self.user.to_account_info(),
+            to: self.admin.to_account_info(),
+        };
 
-        // let cpi_accounts = Transfer {
-        //     from: self.user.to_account_info(),
-        //     to: self.config.
-        // };
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        let _fee = self.config.fee;
+
+        let amount = 1u64;
+
+        transfer(cpi_ctx, amount)?;
 
         Ok(())
     }

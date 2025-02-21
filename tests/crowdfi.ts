@@ -118,6 +118,7 @@ describe("crowdfi", () => {
       )
       .accountsPartial({
         user: updateAuthority.publicKey,
+        admin: updateAuthority.publicKey,
         campaign: campaign,
         campaignVault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,
