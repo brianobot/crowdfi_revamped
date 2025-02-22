@@ -119,7 +119,7 @@ describe("crowdfi", () => {
 
     const tx = await program.methods
       .donate(
-        new BN(1_000_000),
+        new BN(1_001_000),
       )
       .accountsPartial({
         user: updateAuthority.publicKey,
@@ -140,11 +140,30 @@ describe("crowdfi", () => {
 
     const tx = await program.methods
       .refund(
-        new BN(1_000_000),
+        new BN(1_000),
       )
       .accountsPartial({
         user: updateAuthority.publicKey,
         campaign: campaign,
+        campaignVault: campaign_vault,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([updateAuthority])
+      .rpc();
+
+    console.log("Your transaction signature", tx);
+  });
+
+  it("Campaign is Closed!", async () => {
+    await airdrop(program.provider.connection, updateAuthority.publicKey, 100)
+
+    const tx = await program.methods
+      .closeCampaign()
+      .accountsPartial({
+        user: updateAuthority.publicKey,
+        config: config,
+        campaign: campaign,
+        rewardMint: campaign_mint,
         campaignVault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
