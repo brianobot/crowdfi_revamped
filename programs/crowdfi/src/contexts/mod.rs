@@ -13,3 +13,5 @@ pub use donate::*;
 pub mod refund;
 pub use refund::*;
 
+pub mod close_campaign;
+pub use close_campaign::*;

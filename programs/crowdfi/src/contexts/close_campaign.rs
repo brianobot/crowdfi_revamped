@@ -1,17 +1,22 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
-use anchor_spl::token::{burn, Burn};
-use anchor_spl::token_interface::{Mint, TokenInterface, TokenAccount}; 
+use anchor_spl::{metadata::mpl_token_metadata, token_interface::{Mint, TokenInterface}};
 
-
-use crate::state::Campaign;
-
+use crate::state::{Campaign, Config};
+use crate::error::CrowdfiError;
 
 #[derive(Accounts)]
-pub struct Refund<'info> {
+pub struct CloseCampaign<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(
-        mut, 
+        mut,
+        seeds = [b"config", config.seed.to_le_bytes().as_ref()],
+        bump = config.bump,
+    )]
+    pub config: Account<'info, Config>,
+    #[account(
+        mut,
+        close = user,
         seeds = [b"campaign", campaign.title.as_bytes(), user.key().as_ref()],
         bump = campaign.bump,
     )]
@@ -31,22 +36,15 @@ pub struct Refund<'info> {
         bump = campaign.reward_mint_bump,
     )]
     pub reward_mint: InterfaceAccount<'info, Mint>,
-    #[account(
-        mut,
-        associated_token::authority = user,
-        associated_token::mint = reward_mint,
-    )]
-    pub user_reward_ata: InterfaceAccount<'info, TokenAccount>,
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
 }
 
 
-impl<'info> Refund<'info> {
-    pub fn withdraw_from_vault(&mut self, amount: u64) -> Result<()> {
-        // let user_reward_ata  = &mut self.user_reward_ata;
-        
-        // require!(user_reward_ata.amount <= amount);
+impl<'info> CloseCampaign<'info> {
+    pub fn withdraw_from_vault(&mut self) -> Result<()> {
+        // check if the campaign has met it's target
+        require!(self.campaign.current_amount >= self.campaign.target_amount, CrowdfiError::CampaignTargetNotMet);
 
         let cpi_program = self.system_program.to_account_info();
 
@@ -58,36 +56,29 @@ impl<'info> Refund<'info> {
         let seeds = [
             b"campaign_vault", 
             self.campaign.to_account_info().key.as_ref(),
-            &[self.campaign.vault_bump]
+            &[self.campaign.vault_bump],
         ];
 
         let signer_seeds = &[&seeds[..]];
 
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
 
-        transfer(cpi_ctx, amount)?;
-        
-        // increment the current amount on the campaign data account
-        let campaign = &mut self.campaign;
-        // campaign.current_amount.checked_add(amount)?;
-        campaign.current_amount -= amount;
-        
+        transfer(cpi_ctx, self.campaign.current_amount)?;
+
         Ok(())
     }
 
-    pub fn burn_reward_token(&mut self, amount: u64) -> Result<()> {
-        let cpi_program = self.token_program.to_account_info();
+    pub fn close_mint_metadata(&mut self) -> Result<()> {
+        let seeds = [
+            b"metadata",
+            self.reward_mint.to_account_info().key.as_ref(),
+            mpl_token_metadata::ID.as_ref(),
+        ];
 
-        let cpi_accounts = Burn {
-            mint: self.reward_mint.to_account_info(),
-            from: self.user_reward_ata.to_account_info(),
-            authority: self.user.to_account_info(),
-        };
+        let (_metadata_key, _bump) = Pubkey::find_program_address(&seeds, &mpl_token_metadata::ID);
 
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        // mpl_token_metadata::accounts::CreateMetadataAccountsV3
 
-        burn(cpi_ctx, amount)?;
-        
         Ok(())
     }
 }

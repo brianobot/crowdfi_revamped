@@ -6,6 +6,8 @@ pub use contexts::*;
 pub mod state;
 pub use state::*;
 
+pub mod error;
+
 
 declare_id!("14QSPRYYb9EyDHSXsqCNY4mcWKQ6dRycb8SNXeKHUcm4");
 
@@ -41,9 +43,9 @@ pub mod crowdfi {
         Ok(())
     }
 
-    // pub fn close_campaign(ctx: Context<CloseCampaign>) -> Result<()> {
-    //     ctx.accounts.close_campaign()?;
-    //     Ok(())
-    // }
+    pub fn close_campaign(ctx: Context<CloseCampaign>) -> Result<()> {
+        ctx.accounts.withdraw_from_vault()?;
+        Ok(())
+    }
 
 }

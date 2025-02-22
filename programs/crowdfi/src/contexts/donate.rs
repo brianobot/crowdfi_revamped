@@ -24,6 +24,7 @@ pub struct Donate<'info> {
     )]
     pub config: Account<'info, Config>,
     #[account(
+        mut,
         seeds = [b"campaign", campaign.title.as_bytes(), user.key().as_ref()],
         bump = campaign.bump,
     )]
@@ -70,6 +71,12 @@ impl<'info> Donate<'info> {
         // let _fee = amount - (self.config.fee as u64 * amount);
 
         transfer(cpi_ctx, amount)?;
+
+        // increment the current amount on the campaign data account
+        let campaign = &mut self.campaign;
+        // campaign.current_amount.checked_add(amount)?;
+        campaign.current_amount += amount;
+
         Ok(())
     }
 
