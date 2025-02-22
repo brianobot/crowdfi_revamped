@@ -6,6 +6,7 @@ import { confirmTransaction } from "@solana-developers/helpers";
 import { BN } from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { randomBytes } from 'node:crypto';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getMint } from "@solana/spl-token";
 
 describe("crowdfi", () => {
   // Configure the client to use the local cluster.
@@ -31,6 +32,7 @@ describe("crowdfi", () => {
       ], program.programId);
       console.log("✅ Config Account Address: ", config);
       
+      
       [campaign, campaign_bump] = PublicKey.findProgramAddressSync([
         Buffer.from("campaign"),
         Buffer.from("Test title"),
@@ -38,11 +40,13 @@ describe("crowdfi", () => {
       ], program.programId);
       console.log("✅ Campaign Account Address: ", campaign);
 
+      
       [campaign_vault, config_bump] = PublicKey.findProgramAddressSync([
         Buffer.from("campaign_vault"),
         campaign.toBuffer(),
       ], program.programId);
       console.log("✅ Campaign Vault Account Address: ", campaign_vault);
+      
       
       [campaign_mint, mint_bump] = PublicKey.findProgramAddressSync([
         Buffer.from("reward_mint"),
@@ -86,9 +90,10 @@ describe("crowdfi", () => {
         user: updateAuthority.publicKey,
         config: config,
         campaign: campaign,
-        rewardMint: campaign_mint,
+        // rewardMint: campaign_mint, // this is not needed since anchor would initialize it for us
         campaignVault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,
+        // tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
       .signers([updateAuthority])
       .rpc();
@@ -119,7 +124,7 @@ describe("crowdfi", () => {
 
     const tx = await program.methods
       .donate(
-        new BN(1_001_000),
+        new BN(1_001_000), // Donating the amount plus the an offset
       )
       .accountsPartial({
         user: updateAuthority.publicKey,
@@ -127,10 +132,12 @@ describe("crowdfi", () => {
         config: config,
         campaign: campaign,
         campaignVault: campaign_vault,
+        // rewardMint: campaign_mint,
+        // tokenProgram: TOKEN_2022_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([updateAuthority])
-      .rpc();
+      .rpc({skipPreflight: true});
 
     console.log("Your transaction signature", tx);
   });
@@ -163,8 +170,8 @@ describe("crowdfi", () => {
         user: updateAuthority.publicKey,
         config: config,
         campaign: campaign,
-        rewardMint: campaign_mint,
-        campaignVault: campaign_vault,
+        // rewardMint: campaign_mint,
+        // campaignVault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([updateAuthority])

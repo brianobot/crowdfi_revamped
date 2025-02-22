@@ -34,7 +34,10 @@ pub struct CreateCampaign<'info> {
         init,
         payer = user,
         mint::decimals = 6,
-        mint::authority = campaign,
+        // all account types in the anchor account type implement the AccountSerialize and AccountDeserialize
+        // trait, among this trait methods is the key() method which returns the Pubkey (address) of the account
+        // in question
+        mint::authority = campaign.key(),
         seeds = [b"reward_mint", campaign.key().as_ref()],
         bump,
     )]
