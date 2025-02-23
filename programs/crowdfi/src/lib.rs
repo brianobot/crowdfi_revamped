@@ -33,6 +33,7 @@ pub mod crowdfi {
 
     pub fn donate(ctx: Context<Donate>, amount: u64) -> Result<()> {
         ctx.accounts.transfer_to_vault(amount)?;
+        ctx.accounts.charge_fee(amount)?;
         ctx.accounts.mint_reward_token(amount)?;
         Ok(())
     }

@@ -9,10 +9,10 @@ use crate::state::Campaign;
 #[derive(Accounts)]
 pub struct Refund<'info> {
     #[account(mut)]
-    pub user: Signer<'info>,
+    pub signer: Signer<'info>,
     #[account(
         mut, 
-        seeds = [b"campaign", campaign.title.as_bytes(), user.key().as_ref()],
+        seeds = [b"campaign", campaign.title.as_bytes(), campaign.admin.as_ref()],
         bump = campaign.bump,
     )]
     pub campaign: Account<'info, Campaign>,
@@ -33,7 +33,7 @@ pub struct Refund<'info> {
     pub reward_mint: InterfaceAccount<'info, Mint>,
     #[account(
         mut,
-        associated_token::authority = user,
+        associated_token::authority = signer,
         associated_token::mint = reward_mint,
     )]
     pub user_reward_ata: InterfaceAccount<'info, TokenAccount>,
@@ -52,7 +52,7 @@ impl<'info> Refund<'info> {
 
         let cpi_accounts = Transfer {
             from: self.campaign_vault.to_account_info(),
-            to: self.user.to_account_info(),
+            to: self.signer.to_account_info(),
         };
 
         let seeds = [
@@ -81,7 +81,7 @@ impl<'info> Refund<'info> {
         let cpi_accounts = Burn {
             mint: self.reward_mint.to_account_info(),
             from: self.user_reward_ata.to_account_info(),
-            authority: self.user.to_account_info(),
+            authority: self.signer.to_account_info(),
         };
 
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
