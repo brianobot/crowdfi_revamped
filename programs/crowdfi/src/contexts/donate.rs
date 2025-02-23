@@ -13,9 +13,18 @@ use crate::state::{Campaign, Config};
 #[derive(Accounts)]
 pub struct Donate<'info> {
     #[account(mut)]
-    pub user: Signer<'info>,
-    #[account(address = config.admin)]
-    pub admin: SystemAccount<'info>,
+    // the person making the donation to the campaign
+    pub signer: Signer<'info>, 
+    #[account(
+        mut, 
+        address = config.admin
+    )]
+    // the admin that created the config for the campaign
+    pub admin: SystemAccount<'info>, 
+    #[account(
+        address = campaign.admin
+    )]
+    pub campaign_admin: SystemAccount<'info>,
 
     #[account(
         mut,
@@ -25,7 +34,7 @@ pub struct Donate<'info> {
     pub config: Account<'info, Config>,
     #[account(
         mut,
-        seeds = [b"campaign", campaign.title.as_bytes(), user.key().as_ref()],
+        seeds = [b"campaign", campaign.title.as_bytes(), campaign_admin.key().as_ref()],
         bump = campaign.bump,
     )]
     pub campaign: Account<'info, Campaign>,
@@ -39,16 +48,19 @@ pub struct Donate<'info> {
     #[account(
         mut,
         mint::decimals = 6,
-        mint::authority = campaign,
+        mint::authority = campaign.key(),
         seeds = [b"reward_mint", campaign.key().as_ref()],
         bump = campaign.reward_mint_bump,
     )]
-    pub reward_mint: InterfaceAccount<'info, Mint>,
+    pub campaign_reward_mint: InterfaceAccount<'info, Mint>,
     #[account(
         init_if_needed,
-        payer = user,
-        associated_token::authority = user,
-        associated_token::mint = reward_mint,
+        payer = signer,
+        // the values passed to the authority and mint field
+        // must be account field present in the account struct
+        // anchor calls the .to_account_info() method on them behind the scene
+        associated_token::authority = signer,
+        associated_token::mint = campaign_reward_mint,
     )]
     pub user_reward_ata: InterfaceAccount<'info, TokenAccount>,
     pub system_program: Program<'info, System>,
@@ -60,17 +72,21 @@ pub struct Donate<'info> {
 impl<'info> Donate<'info> {
     pub fn transfer_to_vault(&mut self, amount: u64) -> Result<()> {
         let cpi_program = self.system_program.to_account_info();
+        msg!("✅ Created CPI Program Variable");
 
         let cpi_accounts = Transfer {
-            from: self.user.to_account_info(),
+            from: self.signer.to_account_info(),
             to: self.campaign_vault.to_account_info(),
         };
+        msg!("✅ Created CPI Accounts Variable");
 
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        msg!("✅ Created CPI Context Variable");
 
         // let _fee = amount - (self.config.fee as u64 * amount);
 
         transfer(cpi_ctx, amount)?;
+        msg!("✅ Transferred Amount");
 
         // increment the current amount on the campaign data account
         let campaign = &mut self.campaign;
@@ -80,30 +96,34 @@ impl<'info> Donate<'info> {
         Ok(())
     }
 
-    pub fn charge_fee(&mut self) -> Result<()> {
+    pub fn charge_fee(&mut self, amount: u64) -> Result<()> {
         let cpi_program = self.system_program.to_account_info();
+        msg!("✅ Created CPI Program Variable [Fee]");
 
         let cpi_accounts = Transfer {
-            from: self.user.to_account_info(),
+            from: self.signer.to_account_info(),
             to: self.admin.to_account_info(),
         };
+        msg!("✅ Created CPI Accounts Variable [FEE]");
 
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
         let _fee = self.config.fee;
 
-        let amount = 1u64;
+        let amount = (_fee as u64 / 100) * amount;
 
         transfer(cpi_ctx, amount)?;
+        msg!("✅ Transfer Fee!");
 
         Ok(())
     }
 
     pub fn mint_reward_token(&mut self, amount: u64) -> Result<()> {
         let cpi_program = self.token_program.to_account_info();
+        msg!("✅ Created CPI Program Variable [MINT]");
 
         let cpi_accounts = MintTo {
-            mint: self.reward_mint.to_account_info(),
+            mint: self.campaign_reward_mint.to_account_info(),
             to: self.user_reward_ata.to_account_info(),
             authority: self.campaign.to_account_info(),
         };
@@ -111,7 +131,7 @@ impl<'info> Donate<'info> {
         let seeds = [
             b"campaign", 
             self.campaign.title.as_bytes(), 
-            self.user.to_account_info().key.as_ref(),
+            self.campaign_admin.to_account_info().key.as_ref(),
             &[self.campaign.bump],
         ];
 

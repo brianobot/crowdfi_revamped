@@ -5,12 +5,15 @@ use crate::state::Campaign;
 
 #[derive(Accounts)]
 pub struct UpdateCampaign<'info> {
-    #[account(mut)]
-    pub user: Signer<'info>,
     #[account(
         mut,
-        seeds = [b"campaign", campaign.title.as_bytes(), user.key().as_ref()],
-        bump,
+        address = campaign.admin,
+    )]
+    pub admin: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [b"campaign", campaign.title.as_bytes(), campaign.admin.as_ref()],
+        bump = campaign.bump,
     )]
     pub campaign: Account<'info, Campaign>,
     pub system_program: Program<'info, System>,

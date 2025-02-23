@@ -6,8 +6,11 @@ use crate::error::CrowdfiError;
 
 #[derive(Accounts)]
 pub struct CloseCampaign<'info> {
-    #[account(mut)]
-    pub user: Signer<'info>,
+    #[account(
+        mut,
+        address = campaign.admin,
+    )]
+    pub signer: Signer<'info>,
     #[account(
         mut,
         seeds = [b"config", config.seed.to_le_bytes().as_ref()],
@@ -16,8 +19,8 @@ pub struct CloseCampaign<'info> {
     pub config: Account<'info, Config>,
     #[account(
         mut,
-        close = user,
-        seeds = [b"campaign", campaign.title.as_bytes(), user.key().as_ref()],
+        close = signer,
+        seeds = [b"campaign", campaign.title.as_bytes(), campaign.admin.as_ref()],
         bump = campaign.bump,
     )]
     pub campaign: Account<'info, Campaign>,
@@ -35,7 +38,7 @@ pub struct CloseCampaign<'info> {
         seeds = [b"reward_mint", campaign.key().as_ref()],
         bump = campaign.reward_mint_bump,
     )]
-    pub reward_mint: InterfaceAccount<'info, Mint>,
+    pub campaign_reward_mint: InterfaceAccount<'info, Mint>,
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
 }
@@ -50,7 +53,7 @@ impl<'info> CloseCampaign<'info> {
 
         let cpi_accounts = Transfer {
             from: self.campaign_vault.to_account_info(),
-            to: self.user.to_account_info(),
+            to: self.signer.to_account_info(),
         };
 
         let seeds = [
@@ -71,7 +74,7 @@ impl<'info> CloseCampaign<'info> {
     pub fn close_mint_metadata(&mut self) -> Result<()> {
         let seeds = [
             b"metadata",
-            self.reward_mint.to_account_info().key.as_ref(),
+            self.campaign_reward_mint.to_account_info().key.as_ref(),
             mpl_token_metadata::ID.as_ref(),
         ];
 

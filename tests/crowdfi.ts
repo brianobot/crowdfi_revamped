@@ -6,7 +6,8 @@ import { confirmTransaction } from "@solana-developers/helpers";
 import { BN } from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { randomBytes } from 'node:crypto';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getMint } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getMint, getAssociatedTokenAddress } from "@solana/spl-token";
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
 describe("crowdfi", () => {
   // Configure the client to use the local cluster.
@@ -21,8 +22,11 @@ describe("crowdfi", () => {
   let campaign_bump;
   let campaign_mint;
   let mint_bump;
+  let userRewardAta;
   
-  const updateAuthority = anchor.web3.Keypair.generate();
+  const admin = anchor.web3.Keypair.generate();
+  const user = anchor.web3.Keypair.generate();
+
   const seed = new BN(randomBytes(8));
 
   before(async () => {
@@ -32,31 +36,36 @@ describe("crowdfi", () => {
       ], program.programId);
       console.log("✅ Config Account Address: ", config);
       
-      
       [campaign, campaign_bump] = PublicKey.findProgramAddressSync([
         Buffer.from("campaign"),
         Buffer.from("Test title"),
-        updateAuthority.publicKey.toBuffer(),
+        admin.publicKey.toBuffer(),
       ], program.programId);
       console.log("✅ Campaign Account Address: ", campaign);
 
-      
       [campaign_vault, config_bump] = PublicKey.findProgramAddressSync([
         Buffer.from("campaign_vault"),
         campaign.toBuffer(),
       ], program.programId);
       console.log("✅ Campaign Vault Account Address: ", campaign_vault);
       
-      
       [campaign_mint, mint_bump] = PublicKey.findProgramAddressSync([
         Buffer.from("reward_mint"),
         campaign.toBuffer(),
       ], program.programId);
       console.log("✅ Campaign Mint Account Address: ", campaign_mint);
+
+      [userRewardAta, mint_bump] = PublicKey.findProgramAddressSync([
+        user.publicKey.toBuffer(),
+        campaign_mint.toBuffer(),
+        TOKEN_2022_PROGRAM_ID.toBuffer()
+
+      ], ASSOCIATED_TOKEN_PROGRAM_ID);
+      console.log("✅ User Campaign Mint Associated Token Account Address: ", userRewardAta);
   });
 
   it("Config Is Initialized!", async () => {
-    await airdrop(program.provider.connection, updateAuthority.publicKey, 100)
+    await airdrop(program.provider.connection, admin.publicKey, 100)
 
     const tx = await program.methods
       .initializeConfig(
@@ -65,17 +74,17 @@ describe("crowdfi", () => {
         new BN(1000), // max_amount
       )
       .accountsPartial({
-        admin: updateAuthority.publicKey,
+        admin: admin.publicKey,
         config: config,
       })
-      .signers([updateAuthority])
+      .signers([admin])
       .rpc();
 
     console.log("Your transaction signature", tx);
   });
   
   it("Campaign is Created!", async () => {
-    await airdrop(program.provider.connection, updateAuthority.publicKey, 100)
+    await airdrop(program.provider.connection, admin.publicKey, 100)
 
     const tx = await program.methods
       .createCampaign(
@@ -87,22 +96,19 @@ describe("crowdfi", () => {
         new BN(1_000_000),
       )
       .accountsPartial({
-        user: updateAuthority.publicKey,
+        admin: admin.publicKey,
         config: config,
-        campaign: campaign,
-        // rewardMint: campaign_mint, // this is not needed since anchor would initialize it for us
-        campaignVault: campaign_vault,
-        tokenProgram: TOKEN_PROGRAM_ID,
         // tokenProgram: TOKEN_2022_PROGRAM_ID,
+        tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .signers([updateAuthority])
+      .signers([admin])
       .rpc();
 
     console.log("Your transaction signature", tx);
   });
   
   it("Campaign is Updated!", async () => {
-    await airdrop(program.provider.connection, updateAuthority.publicKey, 100)
+    await airdrop(program.provider.connection, admin.publicKey, 100)
 
     const tx = await program.methods
       .updateCampaign(
@@ -110,75 +116,82 @@ describe("crowdfi", () => {
         "http://updated_test_url.com",
       )
       .accountsPartial({
-        user: updateAuthority.publicKey,
+        admin: admin.publicKey,
         campaign: campaign,
       })
-      .signers([updateAuthority])
+      .signers([admin])
       .rpc();
 
     console.log("Your transaction signature", tx);
   });
   
   it("Is Donated to Campaign!", async () => {
-    await airdrop(program.provider.connection, updateAuthority.publicKey, 100)
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+    await airdrop(program.provider.connection, user.publicKey, 100)
 
     const tx = await program.methods
       .donate(
         new BN(1_001_000), // Donating the amount plus the an offset
       )
       .accountsPartial({
-        user: updateAuthority.publicKey,
-        admin: updateAuthority.publicKey,
-        config: config,
         campaign: campaign,
+        config: config,
+        campaignAdmin: admin.publicKey,
+        admin: admin.publicKey,
+        signer: user.publicKey,
         campaignVault: campaign_vault,
-        // rewardMint: campaign_mint,
+        campaignRewardMint: campaign_mint,
+        // userRewardAta: userRewardAta,
+        systemProgram: SYSTEM_PROGRAM_ID,
         // tokenProgram: TOKEN_2022_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
       })
-      .signers([updateAuthority])
-      .rpc({skipPreflight: true});
+      .signers([user])
+      .rpc();
 
     console.log("Your transaction signature", tx);
   });
   
   it("Is Refunded from Campaign!", async () => {
-    await airdrop(program.provider.connection, updateAuthority.publicKey, 100)
+    await airdrop(program.provider.connection, user.publicKey, 100)
 
     const tx = await program.methods
       .refund(
         new BN(1_000),
       )
       .accountsPartial({
-        user: updateAuthority.publicKey,
+        signer: user.publicKey,
         campaign: campaign,
         campaignVault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .signers([updateAuthority])
+      .signers([user])
       .rpc();
 
     console.log("Your transaction signature", tx);
   });
 
   it("Campaign is Closed!", async () => {
-    await airdrop(program.provider.connection, updateAuthority.publicKey, 100)
+    await airdrop(program.provider.connection, admin.publicKey, 100)
 
     const tx = await program.methods
       .closeCampaign()
       .accountsPartial({
-        user: updateAuthority.publicKey,
+        signer: admin.publicKey,
         config: config,
         campaign: campaign,
-        // rewardMint: campaign_mint,
-        // campaignVault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .signers([updateAuthority])
+      .signers([admin])
       .rpc();
 
     console.log("Your transaction signature", tx);
   });
+
+  // it("Pause to inspect", (done) => {
+  //   setTimeout(() => done(), 999_000);
+  // }).timeout(999_000);
 });
 
 
