@@ -8,7 +8,8 @@ use anchor_spl::token_interface::{
     TokenInterface
 };
 
-use crate::state::{Campaign, Config};
+use crate::state::{Campaign, Config, Donation};
+use crate::error::CrowdfiError;
 
 
 #[derive(Accounts)]
@@ -32,13 +33,13 @@ pub struct Donate<'info> {
         seeds = [b"config", config.seed.to_le_bytes().as_ref()],
         bump = config.bump,
     )]
-    pub config: Account<'info, Config>,
+    pub config: Box<Account<'info, Config>>,
     #[account(
         mut,
         seeds = [b"campaign", campaign.title.as_bytes(), campaign_admin.key().as_ref()],
         bump = campaign.bump,
     )]
-    pub campaign: Account<'info, Campaign>,
+    pub campaign: Box<Account<'info, Campaign>>,
     #[account(
         mut,
         seeds = [b"campaign_vault", campaign.key().as_ref()],
@@ -57,6 +58,18 @@ pub struct Donate<'info> {
     #[account(
         init_if_needed,
         payer = signer,
+        space = 8 + Donation::INIT_SPACE,
+        seeds = [
+            b"donation",
+            signer.key().as_ref(),
+            campaign.key().as_ref(),
+        ],
+        bump,
+    )]
+    pub donation_info: Box<Account<'info, Donation>>,
+    #[account(
+        init_if_needed,
+        payer = signer,
         // the values passed to the authority and mint field
         // must be account field present in the account struct
         // anchor calls the .to_account_info() method on them behind the scene
@@ -72,6 +85,8 @@ pub struct Donate<'info> {
 
 impl<'info> Donate<'info> {
     pub fn transfer_to_vault(&mut self, amount: u64) -> Result<()> {
+        require!(self.campaign.is_completed != true, CrowdfiError::CampaignIsCompleted);
+
         let cpi_program = self.system_program.to_account_info();
         msg!("✅ Created CPI Program Variable");
 
@@ -142,6 +157,16 @@ impl<'info> Donate<'info> {
 
         mint_to(cpi_ctx, amount)?;
         
+        Ok(())
+    }
+
+    pub fn update_donation_info(&mut self, amount: u64, bumps: &DonateBumps) -> Result<()> {
+        let donation_info = &mut self.donation_info;
+
+        donation_info.authority = self.signer.key();
+        donation_info.amount += amount;
+        donation_info.bump = bumps.donation_info;
+
         Ok(())
     }
 }

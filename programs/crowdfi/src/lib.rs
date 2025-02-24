@@ -34,32 +34,20 @@ pub mod crowdfi {
         ctx.accounts.transfer_to_vault(amount)?;
         ctx.accounts.charge_fee(amount)?;
         ctx.accounts.mint_reward_token(amount)?;
+        ctx.accounts.update_donation_info(amount, &ctx.bumps)?;
         Ok(())
     }
     
     pub fn refund(ctx: Context<Refund>, amount: u64) -> Result<()> {
         ctx.accounts.withdraw_from_vault(amount)?;
         ctx.accounts.burn_reward_token(amount)?;
+        ctx.accounts.update_donation_info(amount)?;
         Ok(())
     }
 
     pub fn close_campaign(ctx: Context<CloseCampaign>) -> Result<()> {
-        // dotenv().ok();
         ctx.accounts.withdraw_from_vault()?;
-
-        // check if the campaign is due and has met it target
-        // if not call the refund donors function below
-        // local_utils.get_token_accounts_for_mint
-        // let helius_network = std::env::var("Network")
-        //     .map_err(|_e| error!(error::CrowdfiError::CustomError))?;
-
-        // let helius_api_key = std::env::var("HELIUS_API_KEY")
-        //     .map_err(|_e| error!(error::CrowdfiError::CustomError))?;
-
-        // let helius_url = format!("https://{}.helius-rpc.com/?api-key={}", helius_network, helius_api_key).as_str();
-
-        // local_utils::get_token_accounts(helius_url, ctx.accounts.campaign_reward_mint.key());
-
+        ctx.accounts.mark_as_is_completed()?;
         Ok(())
     }
 

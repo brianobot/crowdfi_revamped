@@ -2,7 +2,7 @@ use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use anchor_spl::token_interface::{Mint, TokenInterface, TokenAccount, burn, Burn}; 
 
 
-use crate::state::Campaign;
+use crate::state::{Campaign, Donation};
 
 
 #[derive(Accounts)]
@@ -29,11 +29,21 @@ pub struct Refund<'info> {
         seeds = [b"reward_mint", campaign.key().as_ref()],
         bump = campaign.reward_mint_bump,
     )]
-    pub reward_mint: InterfaceAccount<'info, Mint>,
+    pub campaign_reward_mint: InterfaceAccount<'info, Mint>,
+    #[account(
+        mut,
+        seeds = [
+            b"donation",
+            signer.key().as_ref(),
+            campaign.key().as_ref(),
+        ],
+        bump = donation_info.bump,
+    )]
+    pub donation_info: Account<'info, Donation>,
     #[account(
         mut,
         associated_token::authority = signer,
-        associated_token::mint = reward_mint,
+        associated_token::mint = campaign_reward_mint,
     )]
     pub user_reward_ata: InterfaceAccount<'info, TokenAccount>,
     pub system_program: Program<'info, System>,
@@ -78,7 +88,7 @@ impl<'info> Refund<'info> {
         let cpi_program = self.token_program.to_account_info();
 
         let cpi_accounts = Burn {
-            mint: self.reward_mint.to_account_info(),
+            mint: self.campaign_reward_mint.to_account_info(),
             from: self.user_reward_ata.to_account_info(),
             authority: self.signer.to_account_info(),
         };
@@ -87,6 +97,14 @@ impl<'info> Refund<'info> {
 
         burn(cpi_ctx, amount)?;
         
+        Ok(())
+    }
+
+    pub fn update_donation_info(&mut self, amount: u64) -> Result<()> {
+        let donation_info = &mut self.donation_info;
+
+        donation_info.amount -= amount;
+
         Ok(())
     }
 }

@@ -19,7 +19,6 @@ pub struct CloseCampaign<'info> {
     pub config: Account<'info, Config>,
     #[account(
         mut,
-        close = signer,
         seeds = [b"campaign", campaign.title.as_bytes(), campaign.admin.as_ref()],
         bump = campaign.bump,
     )]
@@ -46,41 +45,40 @@ pub struct CloseCampaign<'info> {
 
 impl<'info> CloseCampaign<'info> {
     pub fn withdraw_from_vault(&mut self) -> Result<()> {
-        // check if the campaign has met it's target
-        require!(self.campaign.current_amount >= self.campaign.target_amount, CrowdfiError::CampaignTargetNotMet);
+        // if the campaign is compelted, it has already been closed before
+        require!(self.campaign.is_completed != true, CrowdfiError::CampaignIsCompleted);
 
-        let cpi_program = self.system_program.to_account_info();
+        let has_met_target_amount = self.campaign.current_amount >= self.campaign.target_amount;
 
-        let cpi_accounts = Transfer {
-            from: self.campaign_vault.to_account_info(),
-            to: self.signer.to_account_info(),
-        };
+        if has_met_target_amount {
+            let cpi_program = self.system_program.to_account_info();
 
-        let seeds = [
-            b"campaign_vault", 
-            self.campaign.to_account_info().key.as_ref(),
-            &[self.campaign.vault_bump],
-        ];
+            let cpi_accounts = Transfer {
+                from: self.campaign_vault.to_account_info(),
+                to: self.signer.to_account_info(),
+            };
 
-        let signer_seeds = &[&seeds[..]];
+            let seeds = [
+                b"campaign_vault", 
+                self.campaign.to_account_info().key.as_ref(),
+                &[self.campaign.vault_bump],
+            ];
 
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+            let signer_seeds = &[&seeds[..]];
 
-        transfer(cpi_ctx, self.campaign.current_amount)?;
+            let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+
+            transfer(cpi_ctx, self.campaign.current_amount)?;
+        }
+        
 
         Ok(())
     }
 
-    pub fn close_mint_metadata(&mut self) -> Result<()> {
-        let seeds = [
-            b"metadata",
-            self.campaign_reward_mint.to_account_info().key.as_ref(),
-            mpl_token_metadata::ID.as_ref(),
-        ];
+    pub fn mark_as_is_completed(&mut self) -> Result<()> {
+        let campaign = &mut self.campaign;
 
-        let (_metadata_key, _bump) = Pubkey::find_program_address(&seeds, &mpl_token_metadata::ID);
-
-        // mpl_token_metadata::accounts::CreateMetadataAccountsV3
+        campaign.is_completed = true;
 
         Ok(())
     }
