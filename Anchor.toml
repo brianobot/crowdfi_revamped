@@ -9,6 +9,7 @@ crowdfi = "14QSPRYYb9EyDHSXsqCNY4mcWKQ6dRycb8SNXeKHUcm4"
 
 [programs.devnet]
 crowdfi = "14QSPRYYb9EyDHSXsqCNY4mcWKQ6dRycb8SNXeKHUcm4"
+# GMvQJy82KJryDR6nk2WEti4oYTLJjFKH2EbsdSjtgSMu
 
 [registry]
 url = "https://api.apr.dev"

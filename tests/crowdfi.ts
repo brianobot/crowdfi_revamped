@@ -6,7 +6,7 @@ import { confirmTransaction } from "@solana-developers/helpers";
 import { BN } from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { randomBytes } from 'node:crypto';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getMint, getAssociatedTokenAddress } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddress } from "@solana/spl-token";
 import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
 describe("crowdfi", () => {
@@ -23,6 +23,7 @@ describe("crowdfi", () => {
   let campaign_mint;
   let mint_bump;
   let userRewardAta;
+  let userRewardAtaB;
   
   const admin = anchor.web3.Keypair.generate();
   const user = anchor.web3.Keypair.generate();
@@ -62,6 +63,10 @@ describe("crowdfi", () => {
 
       ], ASSOCIATED_TOKEN_PROGRAM_ID);
       console.log("✅ User Campaign Mint Associated Token Account Address: ", userRewardAta);
+    
+      userRewardAtaB = await getAssociatedTokenAddress(campaign_mint, user.publicKey);
+      console.log("✅ User Campaign Mint ATA B: ", userRewardAtaB);
+
   });
 
   it("Config Is Initialized!", async () => {
@@ -141,8 +146,7 @@ describe("crowdfi", () => {
         signer: user.publicKey,
         campaignVault: campaign_vault,
         campaignRewardMint: campaign_mint,
-        // userRewardAta: userRewardAta,
-        systemProgram: SYSTEM_PROGRAM_ID,
+        userRewardAta: userRewardAtaB,
         // tokenProgram: TOKEN_2022_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
@@ -163,6 +167,7 @@ describe("crowdfi", () => {
       .accountsPartial({
         signer: user.publicKey,
         campaign: campaign,
+        userRewardAta: userRewardAtaB,
         campaignVault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
