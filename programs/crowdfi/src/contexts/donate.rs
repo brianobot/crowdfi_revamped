@@ -1,8 +1,9 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use anchor_spl::associated_token::AssociatedToken; 
-use anchor_spl::token::{mint_to, MintTo};
 use anchor_spl::token_interface::{
-    Mint, 
+    Mint,
+    mint_to, 
+    MintTo,
     TokenAccount, 
     TokenInterface
 };
