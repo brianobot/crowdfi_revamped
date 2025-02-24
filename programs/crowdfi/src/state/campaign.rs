@@ -18,4 +18,5 @@ pub struct Campaign {
     pub bump: u8,
     pub vault_bump: u8,
     pub reward_mint_bump: u8,
+    pub is_completed: bool,
 }

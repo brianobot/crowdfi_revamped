@@ -7,4 +7,6 @@ pub enum CrowdfiError {
     CustomError,
     #[msg("Campaign has not met it target")]
     CampaignTargetNotMet,
+    #[msg("Campaign has been completed already")]
+    CampaignIsCompleted,
 }

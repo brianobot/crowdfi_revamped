@@ -61,6 +61,7 @@ impl<'info> CreateCampaign<'info> {
             bump: bumps.campaign,
             vault_bump: bumps.campaign_vault, 
             reward_mint_bump: bumps.campaign_reward_mint,
+            is_completed: false
         });
         Ok(())
     }
