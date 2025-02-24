@@ -54,7 +54,6 @@ pub struct Refund<'info> {
 impl<'info> Refund<'info> {
     pub fn withdraw_from_vault(&mut self, amount: u64) -> Result<()> {
         // let user_reward_ata  = &mut self.user_reward_ata;
-        
         // require!(user_reward_ata.amount <= amount);
 
         let cpi_program = self.system_program.to_account_info();
