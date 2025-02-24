@@ -59,7 +59,7 @@ impl<'info> CreateCampaign<'info> {
             start_timestamp,
             end_timestamp,
             bump: bumps.campaign,
-            vault_bump: bumps.campaign_vault,
+            vault_bump: bumps.campaign_vault, 
             reward_mint_bump: bumps.campaign_reward_mint,
         });
         Ok(())
