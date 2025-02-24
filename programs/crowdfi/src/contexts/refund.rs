@@ -1,6 +1,5 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
-use anchor_spl::token::{burn, Burn};
-use anchor_spl::token_interface::{Mint, TokenInterface, TokenAccount}; 
+use anchor_spl::token_interface::{Mint, TokenInterface, TokenAccount, burn, Burn}; 
 
 
 use crate::state::Campaign;
