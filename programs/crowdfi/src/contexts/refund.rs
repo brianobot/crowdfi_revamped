@@ -14,7 +14,7 @@ pub struct Refund<'info> {
         seeds = [b"campaign", campaign.title.as_bytes(), campaign.admin.as_ref()],
         bump = campaign.bump,
     )]
-    pub campaign: Account<'info, Campaign>,
+    pub campaign: Box<Account<'info, Campaign>>,
     #[account(
         mut,
         seeds = [b"campaign_vault", campaign.key().as_ref()],
@@ -39,7 +39,7 @@ pub struct Refund<'info> {
         ],
         bump = donation_info.bump,
     )]
-    pub donation_info: Account<'info, Donation>,
+    pub donation_info: Box<Account<'info, Donation>>,
     #[account(
         mut,
         associated_token::authority = signer,

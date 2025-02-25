@@ -22,15 +22,21 @@ pub struct InitializeConfig<'info> {
 
 impl<'info> InitializeConfig<'info> {
     pub fn init(&mut self, seed: u64, max_duration: u64, max_amount: u64, bump: &InitializeConfigBumps) -> Result<()> {
+        let fee = self.calculate_fee(max_amount, max_duration);
+
         self.config.set_inner( Config {
             admin: self.admin.key(),
             max_duration,
             max_amount,
-            fee: 10,
+            fee: fee,
             bump: bump.config,
             seed,
         });
 
         Ok(())
+    }
+
+    fn calculate_fee(&mut self, _max_amount: u64, _max_duration: u64) -> u16 {
+        10
     }
 }
