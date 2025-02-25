@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::state::Campaign;
+use crate::error::CrowdfiError;
 
 
 #[derive(Accounts)]
@@ -25,10 +26,12 @@ impl<'info> UpdateCampaign<'info> {
         let campaign = &mut self.campaign;
 
         if let Some(value) = description {
+            require!(value.len() <= 250, CrowdfiError::CampaignDescriptionIsTooLong);
             campaign.description = value;
         }
 
         if let Some(value) = url {
+            require!(value.len() <= 250, CrowdfiError::CampaignURLIsTooLong);
             campaign.url = value
         }
             

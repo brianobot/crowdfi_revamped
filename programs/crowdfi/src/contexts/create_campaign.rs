@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::{metadata::mpl_token_metadata, token_interface::{Mint, TokenInterface}};
 
 use crate::state::{Campaign, Config};
+use crate::error::CrowdfiError;
 
 
 #[derive(Accounts)]
@@ -49,6 +50,10 @@ pub struct CreateCampaign<'info> {
 
 impl<'info> CreateCampaign<'info> {
     pub fn init(&mut self, title: String, description: String, url: String, target_amount: u64, start_timestamp: u64, end_timestamp: u64, bumps: &CreateCampaignBumps) -> Result<()> {
+        require!(title.len() <= 250, CrowdfiError::CampaignTitleIsTooLong);
+        require!(description.len() <= 250, CrowdfiError::CampaignDescriptionIsTooLong);
+        require!(url.len() <= 250, CrowdfiError::CampaignURLIsTooLong);
+
         self.campaign.set_inner( Campaign {
             admin: self.admin.key(),
             title,

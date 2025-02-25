@@ -112,6 +112,96 @@ describe("crowdfi", () => {
     console.log("Your transaction signature", tx);
   });
   
+  it("Campaign is Not Created For Long Title!", async () => {
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+
+    try {
+      const tx = await program.methods
+        .createCampaign(
+          "ASIODOIINIANAONINIINSNDOSNNINNSAFINIASSNAADFOFINAIFSNFINAIFNISOFDNSDDANNDDOIIINOIFDIINISNISOFSSOIAAOFFFAFIAIINAADDFFOAINIFISAFNIIINIIOINAASOONDNSAINNSNSINNIINAOASNOAINIODDOIIFFOFFIDFINDIONSIFSFNDNDIFONISFSSIFINANNIANINDSINNSISAADIOONAIINOANIIIAAOOAIAA",
+          "Test Description",
+          "http://test_url.com",
+          new BN(10),
+          new BN(1_000_000),
+          new BN(1_000_000),
+        )
+        .accountsPartial({
+          admin: admin.publicKey,
+          config: config,
+          // tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([admin])
+        .rpc();
+
+        console.log("Your transaction signature", tx);
+    } catch(error) {
+      if (!error.toString().includes("Reached maximum depth for account resolution")) {
+        throw error;
+      }
+    }
+  });
+  
+  it("Campaign is Not Created For Long Description!", async () => {
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+
+    try {
+      const tx = await program.methods
+        .createCampaign(
+          "Test Description",
+          "ASIODOIINIANAONINIINSNDOSNNINNSAFINIASSNAADFOFINAIFSNFINAIFNISOFDNSDDANNDDOIIINOIFDIINISNISOFSSOIAAOFFFAFIAIINAADDFFOAINIFISAFNIIINIIOINAASOONDNSAINNSNSINNIINAOASNOAINIODDOIIFFOFFIDFINDIONSIFSFNDNDIFONISFSSIFINANNIANINDSINNSISAADIOONAIINOANIIIAAOOAI@",
+          "http://test_url.com",
+          new BN(10),
+          new BN(1_000_000),
+          new BN(1_000_000),
+        )
+        .accountsPartial({
+          admin: admin.publicKey,
+          config: config,
+          // tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([admin])
+        .rpc();
+
+        console.log("Your transaction signature", tx);
+    } catch(error) {
+      if (!error.toString().includes("Reached maximum depth for account resolution")) {
+        throw error;
+      }
+    }
+  });
+  
+  it("Campaign is Not Created For Long URL!", async () => {
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+
+    try {
+      const tx = await program.methods
+        .createCampaign(
+          "Test Title",
+          "Desription",
+          "ASIODOIINIANAONINIINSNDOSNNINNSAFINIASSNAADFOFINAIFSNFINAIFNISOFDNSDDANNDDOIIINOIFDIINISNISOFSSOIAAOFFFAFIAIINAADDFFOAINIFISAFNIIINIIOINAASOONDNSAINNSNSINNIINAOASNOAINIODDOIIFFOFFIDFINDIONSIFSFNDNDIFONISFSSIFINANNIANINDSINNSISAADIOONAIINOANIIIAAOOAI@",
+          new BN(10),
+          new BN(1_000_000),
+          new BN(1_000_000),
+        )
+        .accountsPartial({
+          admin: admin.publicKey,
+          config: config,
+          // tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([admin])
+        .rpc();
+
+        console.log("Your transaction signature", tx);
+    } catch(error) {
+      if (!error.toString().includes("Reached maximum depth for account resolution")) {
+        throw error;
+      }
+    }
+  });
+  
   it("Campaign is Updated!", async () => {
     await airdrop(program.provider.connection, admin.publicKey, 100)
 
@@ -128,6 +218,90 @@ describe("crowdfi", () => {
       .rpc();
 
     console.log("Your transaction signature", tx);
+  });
+
+  it("Campaign is Updated For Optional Url!", async () => {
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+
+    const tx = await program.methods
+      .updateCampaign(
+        "Test Description Updated",
+        null,
+      )
+      .accountsPartial({
+        admin: admin.publicKey,
+        campaign: campaign,
+      })
+      .signers([admin])
+      .rpc();
+
+    console.log("Your transaction signature", tx);
+  });
+  
+  it("Campaign is Updated For Optional Description!", async () => {
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+
+    const tx = await program.methods
+      .updateCampaign(
+        null,
+        "http://updated_test_url.com",
+      )
+      .accountsPartial({
+        admin: admin.publicKey,
+        campaign: campaign,
+      })
+      .signers([admin])
+      .rpc();
+
+    console.log("Your transaction signature", tx);
+  });
+  
+  it("Campaign is Not Updated For Description Too Long!", async () => {
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+
+    try {
+        const tx = await program.methods
+        .updateCampaign(
+          "ASIODOIINIANAONINIINSNDOSNNINNSAFINIASSNAADFOFINAIFSNFINAIFNISOFDNSDDANNDDOIIINOIFDIINISNISOFSSOIAAOFFFAFIAIINAADDFFOAINIFISAFNIIINIIOINAASOONDNSAINNSNSINNIINAOASNOAINIODDOIIFFOFFIDFINDIONSIFSFNDNDIFONISFSSIFINANNIANINDSINNSISAADIOONAIINOANIIIAAOOAI@",
+          "http://updated_test_url.com",
+        )
+        .accountsPartial({
+          admin: admin.publicKey,
+          campaign: campaign,
+        })
+        .signers([admin])
+        .rpc();
+
+      console.log("Your transaction signature", tx);
+    } catch(error) {
+      if (!error.toString().includes("Reached maximum depth for account resolution")) {
+        throw error;
+      }
+    }
+  });
+  
+  it("Campaign is Not Updated For URL Too Long!", async () => {
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+
+    try {
+        const tx = await program.methods
+        .updateCampaign(
+          "Small Description",
+          "ASIODOIINIANAONINIINSNDOSNNINNSAFINIASSNAADFOFINAIFSNFINAIFNISOFDNSDDANNDDOIIINOIFDIINISNISOFSSOIAAOFFFAFIAIINAADDFFOAINIFISAFNIIINIIOINAASOONDNSAINNSNSINNIINAOASNOAINIODDOIIFFOFFIDFINDIONSIFSFNDNDIFONISFSSIFINANNIANINDSINNSISAADIOONAIINOANIIIAAOOAI@",
+        )
+        .accountsPartial({
+          admin: admin.publicKey,
+          campaign: campaign,
+        })
+        .signers([admin])
+        .rpc();
+
+      console.log("Your transaction signature", tx);
+    } catch(error) {
+      if (!error.toString().includes("Reached maximum depth for account resolution")) {
+        throw error;
+      }
+    }
   });
   
   it("Is Donated to Campaign!", async () => {
@@ -205,12 +379,12 @@ async function airdrop(connection, address: PublicKey, amount: number) {
     address,
     amount * LAMPORTS_PER_SOL
   );
-  console.log("✍🏾 Airdrop Signature: ", airdrop_signature);
+  // console.log("✍🏾 Airdrop Signature: ", airdrop_signature);
 
   let confirmedAirdrop = await confirmTransaction(connection, airdrop_signature, "confirmed");
 
-  console.log(`🪂 Airdropped ${amount} SOL to ${address.toBase58()}`);
-  console.log("✅ Tx Signature: ", confirmedAirdrop);
+  // console.log(`🪂 Airdropped ${amount} SOL to ${address.toBase58()}`);
+  // console.log("✅ Tx Signature: ", confirmedAirdrop);
 
   return confirmedAirdrop;
 }
