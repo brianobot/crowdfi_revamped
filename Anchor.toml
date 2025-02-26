@@ -17,7 +17,7 @@ crowdfi = "14QSPRYYb9EyDHSXsqCNY4mcWKQ6dRycb8SNXeKHUcm4"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "Devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
