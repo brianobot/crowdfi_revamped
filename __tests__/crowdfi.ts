@@ -8,9 +8,12 @@ import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { randomBytes } from 'node:crypto';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddress } from "@solana/spl-token";
 import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
+import { startAnchor } from "solana-bankrun";
+
 
 describe("crowdfi", () => {
   // Configure the client to use the local cluster.
+
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.Crowdfi as Program<Crowdfi>;
@@ -24,6 +27,8 @@ describe("crowdfi", () => {
   let mint_bump;
   let userRewardAta;
   let userRewardAtaB;
+  let campaignRewardMintMetadata;
+  let campaignRewardMintMetadataBump;
   
   const admin = anchor.web3.Keypair.generate();
   const user = anchor.web3.Keypair.generate();
@@ -67,6 +72,12 @@ describe("crowdfi", () => {
       userRewardAtaB = await getAssociatedTokenAddress(campaign_mint, user.publicKey);
       console.log("✅ User Campaign Mint ATA B: ", userRewardAtaB);
 
+      // [campaignRewardMintMetadata, campaignRewardMintMetadataBump] = PublicKey.findProgramAddressSync([
+      //   Buffer.from("metadata"),
+      //   MPL_TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+      //   campaign_mint.toBuffer(),
+      // ], MPL_TOKEN_METADATA_PROGRAM_ID);
+
   });
 
   it("Config Is Initialized!", async () => {
@@ -103,6 +114,7 @@ describe("crowdfi", () => {
       .accountsPartial({
         admin: admin.publicKey,
         config: config,
+        // campaignRewardMintMetadata: campaignRewardMintMetadata,
         // tokenProgram: TOKEN_2022_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
@@ -318,8 +330,8 @@ describe("crowdfi", () => {
         campaignAdmin: admin.publicKey,
         admin: admin.publicKey,
         signer: user.publicKey,
-        campaignVault: campaign_vault,
-        campaignRewardMint: campaign_mint,
+        vault: campaign_vault,
+        rewardMint: campaign_mint,
         userRewardAta: userRewardAtaB,
         // tokenProgram: TOKEN_2022_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -342,7 +354,7 @@ describe("crowdfi", () => {
         signer: user.publicKey,
         campaign: campaign,
         userRewardAta: userRewardAtaB,
-        campaignVault: campaign_vault,
+        vault: campaign_vault,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([user])

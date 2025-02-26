@@ -21,7 +21,8 @@ pub mod crowdfi {
     }
     
     pub fn create_campaign(ctx: Context<CreateCampaign>, title: String, description: String, url: String, target_amount: u64, start_timestamp: u64, end_timestamp: u64) -> Result<()> {
-        ctx.accounts.init(title, description, url, target_amount, start_timestamp, end_timestamp, &ctx.bumps)?;
+        ctx.accounts.init(title.clone(), description, url, target_amount, start_timestamp, end_timestamp, &ctx.bumps)?;
+        // ctx.accounts.init_mint_metadata(title)?;
         Ok(())
     }
     

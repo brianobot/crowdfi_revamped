@@ -21,7 +21,7 @@ pub struct Refund<'info> {
         bump = campaign.vault_bump,
     )]
     // this would still be owned by my program
-    pub campaign_vault: SystemAccount<'info>,
+    pub vault: SystemAccount<'info>,
     #[account(
         mut,
         mint::decimals = 6,
@@ -29,7 +29,7 @@ pub struct Refund<'info> {
         seeds = [b"reward_mint", campaign.key().as_ref()],
         bump = campaign.reward_mint_bump,
     )]
-    pub campaign_reward_mint: InterfaceAccount<'info, Mint>,
+    pub reward_mint: InterfaceAccount<'info, Mint>,
     #[account(
         mut,
         seeds = [
@@ -43,7 +43,7 @@ pub struct Refund<'info> {
     #[account(
         mut,
         associated_token::authority = signer,
-        associated_token::mint = campaign_reward_mint,
+        associated_token::mint = reward_mint,
     )]
     pub user_reward_ata: InterfaceAccount<'info, TokenAccount>,
     pub system_program: Program<'info, System>,
@@ -59,7 +59,7 @@ impl<'info> Refund<'info> {
         let cpi_program = self.system_program.to_account_info();
 
         let cpi_accounts = Transfer {
-            from: self.campaign_vault.to_account_info(),
+            from: self.vault.to_account_info(),
             to: self.signer.to_account_info(),
         };
 
@@ -87,7 +87,7 @@ impl<'info> Refund<'info> {
         let cpi_program = self.token_program.to_account_info();
 
         let cpi_accounts = Burn {
-            mint: self.campaign_reward_mint.to_account_info(),
+            mint: self.reward_mint.to_account_info(),
             from: self.user_reward_ata.to_account_info(),
             authority: self.signer.to_account_info(),
         };

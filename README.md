@@ -85,6 +85,8 @@ You can build a frontend application using frameworks like React or Vue.js to in
 
 - Test the refund mechanism thoroughly to ensure donors can reclaim their funds if the campaign fails.
 
+## Testing
+
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
 

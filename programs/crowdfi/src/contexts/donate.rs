@@ -46,7 +46,7 @@ pub struct Donate<'info> {
         bump = campaign.vault_bump,
     )]
     // this would still be owned by my program
-    pub campaign_vault: SystemAccount<'info>,
+    pub vault: SystemAccount<'info>,
     #[account(
         mut,
         mint::decimals = 6,
@@ -54,7 +54,7 @@ pub struct Donate<'info> {
         seeds = [b"reward_mint", campaign.key().as_ref()],
         bump = campaign.reward_mint_bump,
     )]
-    pub campaign_reward_mint: InterfaceAccount<'info, Mint>,
+    pub reward_mint: InterfaceAccount<'info, Mint>,
     #[account(
         init_if_needed,
         payer = signer,
@@ -74,7 +74,7 @@ pub struct Donate<'info> {
         // must be account field present in the account struct
         // anchor calls the .to_account_info() method on them behind the scene
         associated_token::authority = signer,
-        associated_token::mint = campaign_reward_mint,
+        associated_token::mint = reward_mint,
     )]
     pub user_reward_ata: InterfaceAccount<'info, TokenAccount>,
     pub system_program: Program<'info, System>,
@@ -92,7 +92,7 @@ impl<'info> Donate<'info> {
 
         let cpi_accounts = Transfer {
             from: self.signer.to_account_info(),
-            to: self.campaign_vault.to_account_info(),
+            to: self.vault.to_account_info(),
         };
         msg!("✅ Created CPI Accounts Variable");
 
@@ -139,7 +139,7 @@ impl<'info> Donate<'info> {
         msg!("✅ Created CPI Program Variable [MINT]");
 
         let cpi_accounts = MintTo {
-            mint: self.campaign_reward_mint.to_account_info(),
+            mint: self.reward_mint.to_account_info(),
             to: self.user_reward_ata.to_account_info(),
             authority: self.campaign.to_account_info(),
         };
