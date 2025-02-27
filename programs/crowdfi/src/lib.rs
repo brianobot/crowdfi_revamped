@@ -8,7 +8,7 @@ pub use state::*;
 
 pub mod error;
 
-declare_id!("14QSPRYYb9EyDHSXsqCNY4mcWKQ6dRycb8SNXeKHUcm4");
+declare_id!("GMvQJy82KJryDR6nk2WEti4oYTLJjFKH2EbsdSjtgSMu");
 
 
 #[program]
