@@ -7,8 +7,6 @@ import { BN } from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { randomBytes } from 'node:crypto';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddress } from "@solana/spl-token";
-import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
-import { startAnchor } from "solana-bankrun";
 
 
 describe("crowdfi", () => {
