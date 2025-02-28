@@ -44,6 +44,7 @@ pub struct Refund<'info> {
         mut,
         associated_token::authority = signer,
         associated_token::mint = reward_mint,
+        associated_token::token_program = token_program,
     )]
     pub user_reward_ata: InterfaceAccount<'info, TokenAccount>,
     pub system_program: Program<'info, System>,

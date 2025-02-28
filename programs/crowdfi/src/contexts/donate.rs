@@ -75,6 +75,7 @@ pub struct Donate<'info> {
         // anchor calls the .to_account_info() method on them behind the scene
         associated_token::authority = signer,
         associated_token::mint = reward_mint,
+        associated_token::token_program = token_program,
     )]
     pub user_reward_ata: InterfaceAccount<'info, TokenAccount>,
     pub system_program: Program<'info, System>,
