@@ -97,7 +97,7 @@ impl<'info> CreateCampaign<'info> {
         Ok(())
     }
 
-    pub fn init_mint_metadata(&mut self, title: String) -> Result<()> {
+    pub fn init_mint_metadata(&mut self, _title: String) -> Result<()> {
         // let name = title;
         // let symbol = String::from("NNN");
         // let uri = String::from("https://brianobot.github.io/");
