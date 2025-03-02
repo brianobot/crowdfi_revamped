@@ -1,4 +1,4 @@
-# Crowdfi - Solana Smart Contract
+# Crowdfi - Solana Smart Contract - Turbin3 Capstone Project
 
 ## Overview
 Crowdfi is a Solana-based smart contract that enables users to create crowdfunding campaigns for sponsorship. The platform ensures transparency and trust by guaranteeing that donations are refundable if the campaign does not meet its target amount within the specified duration. This README provides an overview of the project, its features, and instructions for setting up and interacting with the smart contract.
