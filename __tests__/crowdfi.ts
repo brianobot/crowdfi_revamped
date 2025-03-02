@@ -377,10 +377,6 @@ describe("crowdfi", () => {
 
     console.log("Your transaction signature", tx);
   });
-
-  // it("Pause to inspect", (done) => {
-  //   setTimeout(() => done(), 999_000);
-  // }).timeout(999_000);
 });
 
 
@@ -389,11 +385,8 @@ async function airdrop(connection, address: PublicKey, amount: number) {
     address,
     amount * LAMPORTS_PER_SOL
   );
-  // console.log("✍🏾 Airdrop Signature: ", airdrop_signature);
-
+  
   let confirmedAirdrop = await confirmTransaction(connection, airdrop_signature, "confirmed");
-
-  // console.log(`🪂 Airdropped ${amount} SOL to ${address.toBase58()}`);
   // console.log("✅ Tx Signature: ", confirmedAirdrop);
 
   return confirmedAirdrop;
