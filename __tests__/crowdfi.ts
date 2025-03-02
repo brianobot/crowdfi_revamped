@@ -7,7 +7,7 @@ import { BN } from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { randomBytes } from 'node:crypto';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddress } from "@solana/spl-token";
-
+import { assert } from "chai";
 
 describe("crowdfi", () => {
   // Configure the client to use the local cluster.
@@ -339,6 +339,9 @@ describe("crowdfi", () => {
       .rpc();
 
     console.log("Your transaction signature", tx);
+
+    let campaignVaultBalance = await getBalance(program.provider.connection, campaign_vault);
+    assert.equal(campaignVaultBalance, 1_001_000);
   });
   
   it("Is Refunded from Campaign!", async () => {
@@ -359,6 +362,8 @@ describe("crowdfi", () => {
       .rpc();
 
     console.log("Your transaction signature", tx);
+    let campaignVaultBalance = await getBalance(program.provider.connection, campaign_vault);
+    assert.equal(campaignVaultBalance, 1_000_000);
   });
 
   it("Campaign is Closed!", async () => {
@@ -390,4 +395,10 @@ async function airdrop(connection, address: PublicKey, amount: number) {
   // console.log("✅ Tx Signature: ", confirmedAirdrop);
 
   return confirmedAirdrop;
+}
+
+async function getBalance(connection: anchor.web3.Connection, address: PublicKey) {
+  let accountInfo = await connection.getAccountInfo(address);
+
+  return accountInfo.lamports;
 }
