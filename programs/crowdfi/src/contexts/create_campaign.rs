@@ -82,6 +82,7 @@ impl<'info> CreateCampaign<'info> {
 
         self.campaign.set_inner( Campaign {
             admin: self.admin.key(),
+            config: self.config.key(),
             title,
             description,
             url,

@@ -5,6 +5,7 @@ use anchor_lang::prelude::*;
 #[derive(InitSpace)]
 pub struct Campaign {
     pub admin: Pubkey,
+    pub config: Pubkey,
     #[max_len(250)]
     pub title: String,
     #[max_len(250)]
