@@ -165,6 +165,7 @@ impl<'info> Donate<'info> {
         let donation_info = &mut self.donation_info;
 
         donation_info.authority = self.signer.key();
+        donation_info.campaign = self.campaign.key();
         donation_info.amount += amount;
         donation_info.bump = bumps.donation_info;
 

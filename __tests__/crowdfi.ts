@@ -328,9 +328,9 @@ describe("crowdfi", () => {
         campaignAdmin: admin.publicKey,
         admin: admin.publicKey,
         signer: user.publicKey,
-        vault: campaign_vault,
-        rewardMint: campaign_mint,
-        userRewardAta: userRewardAtaB,
+        // vault: campaign_vault,
+        // rewardMint: campaign_mint,
+        // userRewardAta: userRewardAtaB,
         // tokenProgram: TOKEN_2022_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
