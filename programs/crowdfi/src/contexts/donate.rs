@@ -86,6 +86,7 @@ pub struct Donate<'info> {
 
 impl<'info> Donate<'info> {
     pub fn transfer_to_vault(&mut self, amount: u64) -> Result<()> {
+        require!(amount > 0, CrowdfiError::InvalidAmount);
         require!(self.campaign.is_completed != true, CrowdfiError::CampaignIsCompleted);
 
         let cpi_program = self.system_program.to_account_info();

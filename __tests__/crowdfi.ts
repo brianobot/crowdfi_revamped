@@ -344,6 +344,39 @@ describe("crowdfi", () => {
     assert.equal(campaignVaultBalance, 1_001_000);
   });
   
+  it("Is Donated to Campaign Fails for Zero Value!", async () => {
+    await airdrop(program.provider.connection, admin.publicKey, 100)
+    await airdrop(program.provider.connection, user.publicKey, 100)
+
+    try {
+      const tx = await program.methods
+        .donate(
+          new BN(0), // Donating the amount plus the an offset
+        )
+        .accountsPartial({
+          campaign: campaign,
+          config: config,
+          campaignAdmin: admin.publicKey,
+          admin: admin.publicKey,
+          signer: user.publicKey,
+          // vault: campaign_vault,
+          // rewardMint: campaign_mint,
+          // userRewardAta: userRewardAtaB,
+          // tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
+        })
+        .signers([user])
+        .rpc();
+
+      console.log("Your transaction signature", tx);
+    } catch(error) {
+      if (!error.toString().includes("Invalid Amount Value.")) {
+        throw error;
+      }
+    }
+  });
+  
   it("Is Refunded from Campaign!", async () => {
     await airdrop(program.provider.connection, user.publicKey, 100)
 

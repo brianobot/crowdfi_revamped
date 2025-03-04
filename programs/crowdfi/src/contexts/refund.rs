@@ -3,6 +3,7 @@ use anchor_spl::token_interface::{Mint, TokenInterface, TokenAccount, burn, Burn
 
 
 use crate::state::{Campaign, Donation};
+use crate::error::CrowdfiError;
 
 
 #[derive(Accounts)]
@@ -54,8 +55,7 @@ pub struct Refund<'info> {
 
 impl<'info> Refund<'info> {
     pub fn withdraw_from_vault(&mut self, amount: u64) -> Result<()> {
-        // let user_reward_ata  = &mut self.user_reward_ata;
-        // require!(user_reward_ata.amount <= amount);
+        require!(amount > 0, CrowdfiError::InvalidAmount);
 
         let cpi_program = self.system_program.to_account_info();
 
